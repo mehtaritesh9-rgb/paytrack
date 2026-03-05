@@ -196,6 +196,111 @@ tr:hover td{background:#fafbfd}
 .tst.success{background:#15803d}.tst.error{background:var(--red)}.tst.info{background:var(--accent)}.tst.warn{background:var(--orange)}
 @keyframes slideIn{from{transform:translateX(28px);opacity:0}to{transform:translateX(0);opacity:1}}
 ::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* ═══════════════════════════════
+   MOBILE RESPONSIVE  ≤ 768px
+═══════════════════════════════ */
+@media(max-width:768px){
+
+  /* Topbar: stack logo+title left, shrink right side */
+  .topbar{padding:0 12px;height:auto;min-height:52px;flex-wrap:wrap;gap:6px;padding-top:8px;padding-bottom:8px}
+  .app-sub{display:none}
+  .tr{gap:5px;flex-wrap:wrap}
+  .tbtn{padding:5px 8px;font-size:10px}
+  .user-chip{padding:4px 8px;font-size:11px}
+  .role-tag{display:none}
+
+  /* Reminder banner */
+  .rem-banner{flex-direction:column;align-items:flex-start;gap:8px;padding:10px 14px;font-size:11px}
+
+  /* Main padding */
+  .main{padding:14px 10px 60px}
+
+  /* Tabs: scrollable horizontal */
+  .tabs{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{white-space:nowrap;padding:7px 12px;font-size:11px}
+
+  /* Stats: 2 columns */
+  .stats-row{grid-template-columns:1fr 1fr;gap:8px}
+  .sc{padding:12px 14px}
+  .sc-val{font-size:17px}
+
+  /* Cards */
+  .card{padding:14px}
+
+  /* Upload box */
+  .upload-box{padding:16px 12px}
+  .upload-hint{font-size:10px}
+
+  /* Filters: stack vertically */
+  .fbar{padding:10px 12px}
+  .frow{flex-direction:column;gap:7px}
+  .fg,.fg.grow{width:100%;min-width:unset}
+  .freset{width:100%;margin-top:2px}
+
+  /* Table: horizontal scroll with sticky party name column */
+  .tw{border-radius:8px}
+  .ts{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{min-width:700px}
+  .th{padding:9px 12px;flex-direction:column;align-items:flex-start;gap:6px}
+  .ta{width:100%}
+  .abtn{flex:1;justify-content:center;font-size:10px}
+  th{padding:7px 10px;font-size:9px}
+  td{padding:7px 10px}
+  .pn{font-size:11px}
+  .pc{font-size:9px}
+  .ph{font-size:9px}
+  .ad,.ac{font-size:10px}
+  .ptp-btn{padding:3px 7px;font-size:9px}
+
+  /* Manager list */
+  .mgr-row{flex-wrap:wrap;gap:8px}
+  .mgr-info{min-width:0;flex:1}
+  .mgr-acts{width:100%;justify-content:flex-end}
+  .ibtn{padding:4px 8px;font-size:10px}
+
+  /* Add manager form */
+  .amf{grid-template-columns:1fr 1fr;gap:8px}
+  .fi{font-size:12px;padding:8px 9px}
+
+  /* Email setup */
+  .sg{grid-template-columns:1fr}
+
+  /* Modals */
+  .md{padding:20px 16px;margin:10px}
+  .md-title{font-size:15px}
+  .md-acts{flex-direction:column}
+  .mb{min-width:unset;width:100%}
+
+  /* Login card */
+  .login-card{padding:28px 20px;margin:16px}
+  .login-title{font-size:22px}
+
+  /* PTP form */
+  .ptp-form input,.ptp-form textarea{font-size:14px}
+}
+
+
+/* Sticky party name column on mobile table */
+@media(max-width:768px){
+  table td:first-child, table th:first-child{
+    position:sticky;left:0;background:var(--white);z-index:2;
+    box-shadow:2px 0 4px rgba(0,0,0,.06);min-width:130px;max-width:160px;
+  }
+  table thead th:first-child{background:#f8fafc;}
+  .dup-acts{grid-template-columns:1fr!important}
+  /* Make main padding respect mobile nav */
+  .main{padding-bottom:80px!important}
+}
+
+/* Extra small ≤ 380px */
+@media(max-width:380px){
+  .stats-row{grid-template-columns:1fr 1fr}
+  .sc-val{font-size:15px}
+  .tab{padding:6px 10px;font-size:10px}
+  .tbtn span,.tbtn-text{display:none}
+}
 </style>
 </head>
 <body>
@@ -232,7 +337,7 @@ tr:hover td{background:#fafbfd}
     </div>
     <div class="tr">
       <div class="user-chip"><span id="topUser">—</span><span class="role-tag" id="topRole">—</span></div>
-      <button class="tbtn" id="driveBtn" onclick="initGDrive()">☁ Google Drive</button>
+      <button class="tbtn" id="driveBtn" onclick="initGDrive()"><span class="tbtn-drive-icon">☁</span> <span class="tbtn-drive-txt">Google Drive</span></button>
       <button class="tbtn red" onclick="doLogout()">↩ Logout</button>
     </div>
   </div>
@@ -333,6 +438,25 @@ tr:hover td{background:#fafbfd}
     </div>
 
   </div>
+
+  <!-- MOBILE BOTTOM NAV (admin only, shown on small screens) -->
+  <div id="mobileNav" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--border);padding:8px 0 env(safe-area-inset-bottom,8px);z-index:200;box-shadow:0 -2px 12px rgba(0,0,0,.08)">
+    <div style="display:flex;justify-content:space-around;align-items:center">
+      <button onclick="switchTab('dashboard');setMobActive(this)" class="mob-nav-btn mob-active" data-tab="dashboard" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 12px;border:none;background:none;font-family:var(--font);font-size:9px;font-weight:700;color:var(--accent);cursor:pointer">
+        <span style="font-size:18px">📊</span>Dashboard
+      </button>
+      <button onclick="switchTab('upload');setMobActive(this)" class="mob-nav-btn" data-tab="upload" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 12px;border:none;background:none;font-family:var(--font);font-size:9px;font-weight:700;color:var(--muted);cursor:pointer">
+        <span style="font-size:18px">📂</span>Upload
+      </button>
+      <button onclick="switchTab('managers');setMobActive(this)" class="mob-nav-btn" data-tab="managers" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 12px;border:none;background:none;font-family:var(--font);font-size:9px;font-weight:700;color:var(--muted);cursor:pointer">
+        <span style="font-size:18px">👥</span>Managers
+      </button>
+      <button onclick="switchTab('email');setMobActive(this)" class="mob-nav-btn" data-tab="email" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 12px;border:none;background:none;font-family:var(--font);font-size:9px;font-weight:700;color:var(--muted);cursor:pointer">
+        <span style="font-size:18px">✉</span>Email
+      </button>
+    </div>
+  </div>
+
 </div>
 
 <!-- PTP MODAL -->
@@ -364,7 +488,7 @@ tr:hover td{background:#fafbfd}
       <div class="ds"><div class="dl" style="color:var(--muted)">Existing</div><div id="dupEx"></div></div>
       <div class="ds"><div class="dl" style="color:var(--accent)">New Upload</div><div id="dupNw"></div></div>
     </div>
-    <div class="md-acts" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+    <div class="md-acts dup-acts" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
       <button class="mb p" onclick="resDup('keep')">Keep Existing</button>
       <button class="mb r" onclick="resDup('replace')">Replace with New</button>
       <button class="mb g" onclick="resDup('replaceAll')">Replace All</button>
@@ -436,6 +560,7 @@ function go(){
     if(merged.length)renderMgrDash();
   }
   startRemCheck();
+  setTimeout(checkMobile,100);
 }
 function doLogout(){
   CU=null;
@@ -908,6 +1033,23 @@ function fmtL(n){if(n>=10000000)return(n/10000000).toFixed(1)+'Cr';if(n>=100000)
 function td(){const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
 function randCol(){return['#2563eb','#7c3aed','#db2777','#ea580c','#16a34a','#0891b2','#9333ea','#b45309'][Math.floor(Math.random()*8)];}
 function toast(msg,type='info'){const c=document.getElementById('TC');const t=document.createElement('div');t.className=`tst ${type}`;t.innerHTML=`<span>${type==='success'?'✓':type==='error'?'✗':type==='warn'?'⚠':'ℹ'}</span> ${msg}`;c.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .4s';setTimeout(()=>t.remove(),400);},3500);}
+
+
+// ── MOBILE NAV ──
+function setMobActive(btn){
+  document.querySelectorAll('.mob-nav-btn').forEach(b=>{b.style.color='var(--muted)';});
+  btn.style.color='var(--accent)';
+}
+function checkMobile(){
+  const isMob=window.innerWidth<=768;
+  const nav=document.getElementById('mobileNav');
+  if(nav&&CU?.role==='admin') nav.style.display=isMob?'block':'none';
+  // Hide top tabs on mobile (bottom nav takes over for admin)
+  const topTabs=document.querySelector('.tabs');
+  // Top tabs hidden on mobile for admin (bottom nav used instead)
+  if(topTabs&&CU?.role==='admin') topTabs.style.display=isMob?'none':'flex';
+}
+window.addEventListener('resize',checkMobile);
 
 // ── INIT ──
 openDB().then(loadDB).catch(e=>console.error('DB error:',e));
