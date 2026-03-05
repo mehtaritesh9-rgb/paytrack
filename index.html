@@ -561,6 +561,12 @@ function go(){
   }
   startRemCheck();
   setTimeout(checkMobile,100);
+  // Show sync nudge on mobile if no data loaded yet
+  setTimeout(()=>{
+    if(!merged.length && window.innerWidth<=768){
+      showSyncNudge();
+    }
+  }, 400);
 }
 function doLogout(){
   CU=null;
@@ -576,7 +582,9 @@ function doLogout(){
 // ── TABS ──
 function switchTab(id){
   const ids=['dashboard','upload','managers','email'];
+  // Update tab bar buttons if visible
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',ids[i]===id));
+  // Always activate the correct tab content
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
   const el=document.getElementById('tab-'+id);if(el)el.classList.add('active');
   if(id==='dashboard'&&merged.length)renderDash();
@@ -1044,12 +1052,37 @@ function checkMobile(){
   const isMob=window.innerWidth<=768;
   const nav=document.getElementById('mobileNav');
   if(nav&&CU?.role==='admin') nav.style.display=isMob?'block':'none';
-  // Hide top tabs on mobile (bottom nav takes over for admin)
+  // On mobile: collapse the tab button bar (height=0) so bottom nav takes over
+  // But keep tab-content divs fully visible — do NOT hide them
   const topTabs=document.querySelector('.tabs');
-  // Top tabs hidden on mobile for admin (bottom nav used instead)
-  if(topTabs&&CU?.role==='admin') topTabs.style.display=isMob?'none':'flex';
+  if(topTabs&&CU?.role==='admin'){
+    if(isMob){
+      topTabs.style.height='0'; topTabs.style.overflow='hidden';
+      topTabs.style.margin='0'; topTabs.style.padding='0'; topTabs.style.border='none';
+    } else {
+      topTabs.style.height=''; topTabs.style.overflow='';
+      topTabs.style.margin=''; topTabs.style.padding='4px'; topTabs.style.border='';
+    }
+  }
 }
 window.addEventListener('resize',checkMobile);
+
+
+function showSyncNudge(){
+  const existing = document.getElementById('syncNudge');
+  if(existing) return;
+  const el = document.createElement('div');
+  el.id = 'syncNudge';
+  el.style.cssText = 'position:fixed;bottom:70px;left:12px;right:12px;background:var(--accent);color:#fff;border-radius:12px;padding:14px 16px;z-index:300;box-shadow:0 8px 24px rgba(37,99,235,.4);animation:slideIn .3s ease';
+  el.innerHTML = `
+    <div style="font-weight:800;font-size:14px;margin-bottom:4px">☁ Connect Google Drive</div>
+    <div style="font-size:12px;opacity:.9;margin-bottom:12px">Tap to sync your data across all devices</div>
+    <div style="display:flex;gap:8px">
+      <button onclick="initGDrive();document.getElementById('syncNudge')?.remove()" style="flex:1;padding:9px;background:#fff;color:var(--accent);border:none;border-radius:8px;font-family:var(--font);font-weight:800;font-size:13px;cursor:pointer">Connect Drive</button>
+      <button onclick="document.getElementById('syncNudge')?.remove()" style="padding:9px 14px;background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:8px;font-family:var(--font);font-weight:700;font-size:12px;cursor:pointer">Later</button>
+    </div>`;
+  document.body.appendChild(el);
+}
 
 // ── INIT ──
 openDB().then(loadDB).catch(e=>console.error('DB error:',e));
