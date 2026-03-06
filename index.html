@@ -981,7 +981,7 @@ async function sendPTPReminders(){
 
 // ── GOOGLE DRIVE ──
 function initGDrive(){
-  const cid='997562784248-p7qqsfcai8vtt0dqidomdgsuf8eajcgb.apps.googleusercontent.com';
+  const cid='997562784248-g7tkuac430mg1ihbub279i6o4d1299f5.apps.googleusercontent.com';
   const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';
   s.onload=()=>{
     google.accounts.oauth2.initTokenClient({client_id:cid,scope:'https://www.googleapis.com/auth/drive.file',callback:async resp=>{
