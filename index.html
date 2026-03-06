@@ -337,7 +337,8 @@ tr:hover td{background:#fafbfd}
     </div>
     <div class="tr">
       <div class="user-chip"><span id="topUser">—</span><span class="role-tag" id="topRole">—</span></div>
-      <button class="tbtn" id="driveBtn" onclick="initGDrive()"><span class="tbtn-drive-icon">☁</span> <span class="tbtn-drive-txt">Google Drive</span></button>
+      <button class="tbtn" id="driveBtn" onclick="initGDrive(false)"><span class="tbtn-drive-icon">☁</span> <span class="tbtn-drive-txt">Google Drive</span></button>
+      <button class="tbtn" id="syncBtn" onclick="loadDrive()" style="display:none" title="Sync from Drive">🔄 Sync</button>
       <button class="tbtn red" onclick="doLogout()">↩ Logout</button>
     </div>
   </div>
@@ -504,6 +505,10 @@ tr:hover td{background:#fafbfd}
 let CU=null,master=[],merged=[],managers=[],ptp={},emailCfg={},rawLed=null,rawMst=null;
 let dupQ=[],dupCB=null,skipAll=false,replAll=false,ptpTarget=null;
 let accessToken=null,driveFileId=null,remInterval=null;
+const LS={
+  session:'pt_session',   // {name, role, email}
+  driveConnected:'pt_drive_connected', // 'yes'
+};
 let db;
 
 const K={master:'pt_m',merged:'pt_d',managers:'pt_mg',ptp:'pt_p',email:'pt_e'};
@@ -540,9 +545,17 @@ function doLogin(){
   const pin=document.getElementById('lPin').value.trim();
   if(!name||!pin){showErr('Enter name and PIN.');return;}
   const adm=managers.find(m=>m.role==='admin');
-  if(name.toLowerCase()==='admin'&&pin===(adm?.pin||'0000')){CU={name:'Admin',role:'admin',email:adm?.email||''};go();return;}
+  if(name.toLowerCase()==='admin'&&pin===(adm?.pin||'0000')){
+    CU={name:'Admin',role:'admin',email:adm?.email||''};
+    localStorage.setItem(LS.session,JSON.stringify(CU));
+    go();return;
+  }
   const mgr=managers.find(m=>m.name.toLowerCase()===name.toLowerCase()&&m.pin===pin&&m.role!=='admin');
-  if(mgr){CU={name:mgr.name,role:'manager',email:mgr.email};go();return;}
+  if(mgr){
+    CU={name:mgr.name,role:'manager',email:mgr.email};
+    localStorage.setItem(LS.session,JSON.stringify(CU));
+    go();return;
+  }
   showErr('Incorrect name or PIN.');
 }
 function showErr(m){const e=document.getElementById('lErr');e.textContent=m;e.style.display='block';setTimeout(()=>e.style.display='none',3000);}
@@ -570,6 +583,9 @@ function go(){
 }
 function doLogout(){
   CU=null;
+  accessToken=null;
+  localStorage.removeItem(LS.session);
+  localStorage.removeItem(LS.driveConnected);
   document.getElementById('appShell').style.display='none';
   document.getElementById('loginScreen').style.display='flex';
   document.getElementById('adminView').style.display='none';
@@ -980,15 +996,58 @@ async function sendPTPReminders(){
 }
 
 // ── GOOGLE DRIVE ──
-function initGDrive(){
-  const cid='997562784248-g7tkuac430mg1ihbub279i6o4d1299f5.apps.googleusercontent.com';
-  const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';
-  s.onload=()=>{
-    google.accounts.oauth2.initTokenClient({client_id:cid,scope:'https://www.googleapis.com/auth/drive.file',callback:async resp=>{
-      if(resp.access_token){accessToken=resp.access_token;document.getElementById('driveBtn').textContent='☁ Drive ✓';document.getElementById('driveBtn').style.color='var(--green)';toast('Drive connected','success');await loadDrive();}
-    }}).requestAccessToken();
-  };
-  document.head.appendChild(s);
+const GCI='997562784248-g7tkuac430mg1ihbub279i6o4d1299f5.apps.googleusercontent.com';
+let gsiLoaded=false, tokenClient=null;
+
+function loadGSI(){
+  return new Promise(res=>{
+    if(gsiLoaded){res();return;}
+    const s=document.createElement('script');
+    s.src='https://accounts.google.com/gsi/client';
+    s.onload=()=>{gsiLoaded=true;res();};
+    document.head.appendChild(s);
+  });
+}
+
+function markDriveUI(){
+  const b=document.getElementById('driveBtn');
+  if(b){b.innerHTML='☁ Drive ✓';b.style.color='var(--green)';}
+  const s=document.getElementById('syncBtn');
+  if(s)s.style.display='flex';
+}
+
+async function initGDrive(silent=false){
+  await loadGSI();
+  tokenClient=google.accounts.oauth2.initTokenClient({
+    client_id:GCI,
+    scope:'https://www.googleapis.com/auth/drive.file',
+    callback:async resp=>{
+      if(resp.access_token){
+        accessToken=resp.access_token;
+        localStorage.setItem(LS.driveConnected,'yes');
+        markDriveUI();
+        if(!silent)toast('Drive connected','success');
+        await loadDrive();
+        // Re-render after drive load
+        if(CU?.role==='admin'){renderDash();renderMgrList();}
+        else if(CU)renderMgrDash();
+      }
+    }
+  });
+  if(silent){
+    // Silent refresh — no popup, uses existing Google session
+    tokenClient.requestAccessToken({prompt:''});
+  } else {
+    tokenClient.requestAccessToken({prompt:'consent'});
+  }
+}
+
+async function autoReconnectDrive(){
+  // If user previously connected Drive, silently reconnect on load
+  if(localStorage.getItem(LS.driveConnected)==='yes'){
+    try{ await initGDrive(true); }
+    catch(e){ console.log('Silent drive reconnect failed',e); }
+  }
 }
 async function saveDrive(){
   if(!accessToken)return;
@@ -998,18 +1057,28 @@ async function saveDrive(){
 }
 async function loadDrive(){
   if(!accessToken)return;
-  const r=await fetch(`https://www.googleapis.com/drive/v3/files?q=name='paytrack_data.json'&fields=files(id,name)`,{headers:{Authorization:`Bearer ${accessToken}`}});
-  const j=await r.json();
-  if(j.files?.length){
+  try{
+    const r=await fetch(`https://www.googleapis.com/drive/v3/files?q=name='paytrack_data.json'&fields=files(id,name)`,{headers:{Authorization:`Bearer ${accessToken}`}});
+    if(!r.ok){console.error('Drive list failed',r.status);return;}
+    const j=await r.json();
+    if(!j.files?.length){toast('No data found on Drive yet','info');return;}
     driveFileId=j.files[0].id;
-    const d=await(await fetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`,{headers:{Authorization:`Bearer ${accessToken}`}})).json();
-    if(d.merged){merged=d.merged;await dbs(K.merged,merged);}
-    if(d.master){master=d.master;await dbs(K.master,master);}
-    if(d.managers){managers=d.managers;await dbs(K.managers,managers);}
+    const fr=await fetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`,{headers:{Authorization:`Bearer ${accessToken}`}});
+    if(!fr.ok){console.error('Drive fetch failed',fr.status);return;}
+    const d=await fr.json();
+    if(d.merged&&d.merged.length){merged=d.merged;await dbs(K.merged,merged);}
+    if(d.master&&d.master.length){master=d.master;await dbs(K.master,master);}
+    if(d.managers&&d.managers.length){managers=d.managers;await dbs(K.managers,managers);}
     if(d.ptp){ptp=d.ptp;await dbs(K.ptp,ptp);}
     if(d.emailCfg){emailCfg=d.emailCfg;await dbs(K.email,emailCfg);}
-    toast(`Drive: ${merged.length} parties loaded`,'info');
-    if(CU.role==='admin'){renderDash();renderMgrList();loadEJFields();}else renderMgrDash();
+    toast(`Synced: ${merged.length} parties loaded`,'success');
+    // Re-render whatever view is active
+    if(CU?.role==='admin'){renderDash();renderMgrList();loadEJFields();}
+    else if(CU) renderMgrDash();
+    document.getElementById('syncNudge')?.remove();
+  }catch(e){
+    console.error('Drive load error',e);
+    toast('Drive sync error — check connection','error');
   }
 }
 
@@ -1078,14 +1147,31 @@ function showSyncNudge(){
     <div style="font-weight:800;font-size:14px;margin-bottom:4px">☁ Connect Google Drive</div>
     <div style="font-size:12px;opacity:.9;margin-bottom:12px">Tap to sync your data across all devices</div>
     <div style="display:flex;gap:8px">
-      <button onclick="initGDrive();document.getElementById('syncNudge')?.remove()" style="flex:1;padding:9px;background:#fff;color:var(--accent);border:none;border-radius:8px;font-family:var(--font);font-weight:800;font-size:13px;cursor:pointer">Connect Drive</button>
+      <button onclick="initGDrive(false);document.getElementById('syncNudge')?.remove()" style="flex:1;padding:9px;background:#fff;color:var(--accent);border:none;border-radius:8px;font-family:var(--font);font-weight:800;font-size:13px;cursor:pointer">Connect Drive</button>
       <button onclick="document.getElementById('syncNudge')?.remove()" style="padding:9px 14px;background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:8px;font-family:var(--font);font-weight:700;font-size:12px;cursor:pointer">Later</button>
     </div>`;
   document.body.appendChild(el);
 }
 
 // ── INIT ──
-openDB().then(loadDB).catch(e=>console.error('DB error:',e));
+openDB().then(loadDB).then(async()=>{
+  // Restore session from localStorage (survives refresh)
+  const saved=localStorage.getItem(LS.session);
+  if(saved){
+    try{
+      const s=JSON.parse(saved);
+      // Validate user still exists in managers
+      if(s.role==='admin'||(managers.find(m=>m.name===s.name&&m.role!=='admin'))){
+        CU=s;
+        go();
+        // Auto-reconnect Drive silently in background
+        await autoReconnectDrive();
+      }else{
+        localStorage.removeItem(LS.session);
+      }
+    }catch(e){localStorage.removeItem(LS.session);}
+  }
+}).catch(e=>console.error('DB error:',e));
 </script>
 </body>
 </html>
