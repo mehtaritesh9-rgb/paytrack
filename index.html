@@ -2,7 +2,17 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PayTrack">
+<meta name="application-name" content="PayTrack">
+<meta name="description" content="Payment collection management for your team">
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjogIlBheVRyYWNrIFx1MjAxNCBQYXltZW50IE1hbmFnZW1lbnQiLCAic2hvcnRfbmFtZSI6ICJQYXlUcmFjayIsICJkZXNjcmlwdGlvbiI6ICJQYXltZW50IGNvbGxlY3Rpb24gbWFuYWdlbWVudCBmb3IgeW91ciB0ZWFtIiwgInN0YXJ0X3VybCI6ICIvcGF5dHJhY2svIiwgInNjb3BlIjogIi9wYXl0cmFjay8iLCAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwgIm9yaWVudGF0aW9uIjogImFueSIsICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNmNWY3ZmEiLCAidGhlbWVfY29sb3IiOiAiIzI1NjNlYiIsICJpY29ucyI6IFt7InNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUI0Yld4dWN6MGlhSFIwY0RvdkwzZDNkeTUzTXk1dmNtY3ZNakF3TUM5emRtY2lJSGRwWkhSb1BTSXhPVElpSUdobGFXZG9kRDBpTVRreUlpQjJhV1YzUW05NFBTSXdJREFnTVRreUlERTVNaUkrQ2lBZ1BHUmxabk0rQ2lBZ0lDQThiR2x1WldGeVIzSmhaR2xsYm5RZ2FXUTlJbWNpSUhneFBTSXdKU0lnZVRFOUlqQWxJaUI0TWowaU1UQXdKU0lnZVRJOUlqRXdNQ1VpUGdvZ0lDQWdJQ0E4YzNSdmNDQnZabVp6WlhROUlqQWxJaUJ6ZEhsc1pUMGljM1J2Y0MxamIyeHZjam9qTVdVME1HRm1JaTgrQ2lBZ0lDQWdJRHh6ZEc5d0lHOW1abk5sZEQwaU1UQXdKU0lnYzNSNWJHVTlJbk4wYjNBdFkyOXNiM0k2SXpJMU5qTmxZaUl2UGdvZ0lDQWdQQzlzYVc1bFlYSkhjbUZrYVdWdWRENEtJQ0E4TDJSbFpuTStDaUFnUEhKbFkzUWdkMmxrZEdnOUlqRTVNaUlnYUdWcFoyaDBQU0l4T1RJaUlISjRQU0l6TkNJZ2NuazlJak0wSWlCbWFXeHNQU0oxY213b0kyY3BJaTgrQ2lBZ1BIUmxlSFFnZUQwaU9UWWlJSGs5SWpFd055SWdabTl1ZEMxbVlXMXBiSGs5SWtGeWFXRnNJRUpzWVdOckxDQkJjbWxoYkNJZ1ptOXVkQzEzWldsbmFIUTlJamt3TUNJZ1ptOXVkQzF6YVhwbFBTSTNNaUlnWm1sc2JEMGlkMmhwZEdVaUlIUmxlSFF0WVc1amFHOXlQU0p0YVdSa2JHVWlQbEJVUEM5MFpYaDBQZ29nSUR4eVpXTjBJSGc5SWpVeklpQjVQU0l4TXpBaUlIZHBaSFJvUFNJeE5TSWdhR1ZwWjJoMFBTSXhOU0lnY25nOUlqSWlJR1pwYkd3OUluSm5ZbUVvTWpVMUxESTFOU3d5TlRVc01DNDFLU0l2UGdvZ0lEeHlaV04wSUhnOUlqY3lJaUI1UFNJeE1Ua2lJSGRwWkhSb1BTSXhOU0lnYUdWcFoyaDBQU0l5TmlJZ2NuZzlJaklpSUdacGJHdzlJbkpuWW1Fb01qVTFMREkxTlN3eU5UVXNNQzQ1S1NJdlBnb2dJRHh5WldOMElIZzlJamt5SWlCNVBTSXhNalFpSUhkcFpIUm9QU0l4TlNJZ2FHVnBaMmgwUFNJeU1TSWdjbmc5SWpJaUlHWnBiR3c5SW5KblltRW9NalUxTERJMU5Td3lOVFVzTUM0M0tTSXZQZ29nSUR4eVpXTjBJSGc5SWpFeE1TSWdlVDBpTVRNMElpQjNhV1IwYUQwaU1UVWlJR2hsYVdkb2REMGlNVEVpSUhKNFBTSXlJaUJtYVd4c1BTSnlaMkpoS0RJMU5Td3lOVFVzTWpVMUxEQXVOQ2tpTHo0S1BDOXpkbWMrIiwgInNpemVzIjogIjE5MngxOTIiLCAidHlwZSI6ICJpbWFnZS9zdmcreG1sIiwgInB1cnBvc2UiOiAiYW55IG1hc2thYmxlIn0sIHsic3JjIjogImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlp5QjRiV3h1Y3owaWFIUjBjRG92TDNkM2R5NTNNeTV2Y21jdk1qQXdNQzl6ZG1jaUlIZHBaSFJvUFNJMU1USWlJR2hsYVdkb2REMGlOVEV5SWlCMmFXVjNRbTk0UFNJd0lEQWdOVEV5SURVeE1pSStDaUFnUEdSbFpuTStDaUFnSUNBOGJHbHVaV0Z5UjNKaFpHbGxiblFnYVdROUltY2lJSGd4UFNJd0pTSWdlVEU5SWpBbElpQjRNajBpTVRBd0pTSWdlVEk5SWpFd01DVWlQZ29nSUNBZ0lDQThjM1J2Y0NCdlptWnpaWFE5SWpBbElpQnpkSGxzWlQwaWMzUnZjQzFqYjJ4dmNqb2pNV1UwTUdGbUlpOCtDaUFnSUNBZ0lEeHpkRzl3SUc5bVpuTmxkRDBpTVRBd0pTSWdjM1I1YkdVOUluTjBiM0F0WTI5c2IzSTZJekkxTmpObFlpSXZQZ29nSUNBZ1BDOXNhVzVsWVhKSGNtRmthV1Z1ZEQ0S0lDQThMMlJsWm5NK0NpQWdQSEpsWTNRZ2QybGtkR2c5SWpVeE1pSWdhR1ZwWjJoMFBTSTFNVElpSUhKNFBTSTVNaUlnY25rOUlqa3lJaUJtYVd4c1BTSjFjbXdvSTJjcElpOCtDaUFnUEhSbGVIUWdlRDBpTWpVMklpQjVQU0l5T0RZaUlHWnZiblF0Wm1GdGFXeDVQU0pCY21saGJDQkNiR0ZqYXl3Z1FYSnBZV3dpSUdadmJuUXRkMlZwWjJoMFBTSTVNREFpSUdadmJuUXRjMmw2WlQwaU1UazBJaUJtYVd4c1BTSjNhR2wwWlNJZ2RHVjRkQzFoYm1Ob2IzSTlJbTFwWkdSc1pTSStVRlE4TDNSbGVIUStDaUFnUEhKbFkzUWdlRDBpTVRReklpQjVQU0l6TkRnaUlIZHBaSFJvUFNJME1DSWdhR1ZwWjJoMFBTSTBNQ0lnY25nOUlqSWlJR1pwYkd3OUluSm5ZbUVvTWpVMUxESTFOU3d5TlRVc01DNDFLU0l2UGdvZ0lEeHlaV04wSUhnOUlqRTVOQ0lnZVQwaU16RTNJaUIzYVdSMGFEMGlOREFpSUdobGFXZG9kRDBpTnpFaUlISjRQU0l5SWlCbWFXeHNQU0p5WjJKaEtESTFOU3d5TlRVc01qVTFMREF1T1NraUx6NEtJQ0E4Y21WamRDQjRQU0l5TkRVaUlIazlJak16TWlJZ2QybGtkR2c5SWpRd0lpQm9aV2xuYUhROUlqVTJJaUJ5ZUQwaU1pSWdabWxzYkQwaWNtZGlZU2d5TlRVc01qVTFMREkxTlN3d0xqY3BJaTgrQ2lBZ1BISmxZM1FnZUQwaU1qazJJaUI1UFNJek5UZ2lJSGRwWkhSb1BTSTBNQ0lnYUdWcFoyaDBQU0l6TUNJZ2NuZzlJaklpSUdacGJHdzlJbkpuWW1Fb01qVTFMREkxTlN3eU5UVXNNQzQwS1NJdlBnbzhMM04yWno0PSIsICJzaXplcyI6ICI1MTJ4NTEyIiwgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIsICJwdXJwb3NlIjogImFueSBtYXNrYWJsZSJ9XSwgImNhdGVnb3JpZXMiOiBbImJ1c2luZXNzIiwgImZpbmFuY2UiLCAicHJvZHVjdGl2aXR5Il0sICJsYW5nIjogImVuLUlOIn0=">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiB2aWV3Qm94PSIwIDAgMTkyIDE5MiI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMWU0MGFmIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzI1NjNlYiIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjE5MiIgaGVpZ2h0PSIxOTIiIHJ4PSIzNCIgcnk9IjM0IiBmaWxsPSJ1cmwoI2cpIi8+CiAgPHRleHQgeD0iOTYiIHk9IjEwNyIgZm9udC1mYW1pbHk9IkFyaWFsIEJsYWNrLCBBcmlhbCIgZm9udC13ZWlnaHQ9IjkwMCIgZm9udC1zaXplPSI3MiIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPlBUPC90ZXh0PgogIDxyZWN0IHg9IjUzIiB5PSIxMzAiIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSIgcng9IjIiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC41KSIvPgogIDxyZWN0IHg9IjcyIiB5PSIxMTkiIHdpZHRoPSIxNSIgaGVpZ2h0PSIyNiIgcng9IjIiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC45KSIvPgogIDxyZWN0IHg9IjkyIiB5PSIxMjQiIHdpZHRoPSIxNSIgaGVpZ2h0PSIyMSIgcng9IjIiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC43KSIvPgogIDxyZWN0IHg9IjExMSIgeT0iMTM0IiB3aWR0aD0iMTUiIGhlaWdodD0iMTEiIHJ4PSIyIiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuNCkiLz4KPC9zdmc+">
+<link rel="apple-touch-startup-image" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMWU0MGFmIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzI1NjNlYiIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSI5MiIgcnk9IjkyIiBmaWxsPSJ1cmwoI2cpIi8+CiAgPHRleHQgeD0iMjU2IiB5PSIyODYiIGZvbnQtZmFtaWx5PSJBcmlhbCBCbGFjaywgQXJpYWwiIGZvbnQtd2VpZ2h0PSI5MDAiIGZvbnQtc2l6ZT0iMTk0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+UFQ8L3RleHQ+CiAgPHJlY3QgeD0iMTQzIiB5PSIzNDgiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcng9IjIiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC41KSIvPgogIDxyZWN0IHg9IjE5NCIgeT0iMzE3IiB3aWR0aD0iNDAiIGhlaWdodD0iNzEiIHJ4PSIyIiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuOSkiLz4KICA8cmVjdCB4PSIyNDUiIHk9IjMzMiIgd2lkdGg9IjQwIiBoZWlnaHQ9IjU2IiByeD0iMiIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjcpIi8+CiAgPHJlY3QgeD0iMjk2IiB5PSIzNTgiIHdpZHRoPSI0MCIgaGVpZ2h0PSIzMCIgcng9IjIiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC40KSIvPgo8L3N2Zz4=">
 <title>PayTrack — Payment Management</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -1172,6 +1182,92 @@ openDB().then(loadDB).then(async()=>{
     }catch(e){localStorage.removeItem(LS.session);}
   }
 }).catch(e=>console.error('DB error:',e));
+</script>
+
+<!-- PWA Install Banner -->
+<div id="installBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,#1e3a5f,#2563eb);color:#fff;padding:14px 16px 20px;z-index:400;box-shadow:0 -4px 20px rgba(0,0,0,.3)">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiB2aWV3Qm94PSIwIDAgMTkyIDE5MiI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMWU0MGFmIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzI1NjNlYiIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjE5MiIgaGVpZ2h0PSIxOTIiIHJ4PSIzNCIgcnk9IjM0IiBmaWxsPSJ1cmwoI2cpIi8+CiAgPHRleHQgeD0iOTYiIHk9IjEwNyIgZm9udC1mYW1pbHk9IkFyaWFsIEJsYWNrLCBBcmlhbCIgZm9udC13ZWlnaHQ9IjkwMCIgZm9udC1zaXplPSI3MiIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPlBUPC90ZXh0PgogIDxyZWN0IHg9IjUzIiB5PSIxMzAiIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSIgcng9IjIiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC41KSIvPgogIDxyZWN0IHg9IjcyIiB5PSIxMTkiIHdpZHRoPSIxNSIgaGVpZ2h0PSIyNiIgcng9IjIiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC45KSIvPgogIDxyZWN0IHg9IjkyIiB5PSIxMjQiIHdpZHRoPSIxNSIgaGVpZ2h0PSIyMSIgcng9IjIiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC43KSIvPgogIDxyZWN0IHg9IjExMSIgeT0iMTM0IiB3aWR0aD0iMTUiIGhlaWdodD0iMTEiIHJ4PSIyIiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuNCkiLz4KPC9zdmc+" style="width:40px;height:40px;border-radius:10px;background:#fff">
+      <div>
+        <div style="font-weight:800;font-size:14px">Install PayTrack</div>
+        <div style="font-size:11px;opacity:.8">Add to home screen for quick access</div>
+      </div>
+    </div>
+    <span onclick="document.getElementById('installBanner').style.display='none';localStorage.setItem('pt_install_dismissed','1')" style="cursor:pointer;opacity:.7;font-size:20px;padding:4px">✕</span>
+  </div>
+  <div id="installBtnRow" style="display:flex;gap:8px">
+    <button id="installBtn" style="flex:1;padding:10px;background:#fff;color:var(--accent,#2563eb);border:none;border-radius:9px;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">⬇ Install App</button>
+  </div>
+  <div id="iosInstallHint" style="display:none;background:rgba(255,255,255,.15);border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.7;margin-top:4px">
+    Tap <b>Share</b> <span style="font-size:14px">⬆</span> then <b>"Add to Home Screen"</b> <span style="font-size:14px">➕</span>
+  </div>
+</div>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    // Inline service worker via blob — no separate sw.js file needed
+    const swCode = atob('Ly8gUGF5VHJhY2sgU2VydmljZSBXb3JrZXIgdjEKY29uc3QgQ0FDSEUgPSAncGF5dHJhY2stdjEnOwpjb25zdCBPRkZMSU5FX0FTU0VUUyA9IFsKICAnL3BheXRyYWNrLycsCiAgJy9wYXl0cmFjay9pbmRleC5odG1sJywKICAnaHR0cHM6Ly9mb250cy5nb29nbGVhcGlzLmNvbS9jc3MyP2ZhbWlseT1PdXRmaXQ6d2dodEAzMDA7NDAwOzUwMDs2MDA7NzAwOzgwMCZmYW1pbHk9SmV0QnJhaW5zK01vbm86d2dodEA0MDA7NTAwJmRpc3BsYXk9c3dhcCcsCiAgJ2h0dHBzOi8vY2RuanMuY2xvdWRmbGFyZS5jb20vYWpheC9saWJzL3hsc3gvMC4xOC41L3hsc3guZnVsbC5taW4uanMnLAogICdodHRwczovL2Nkbi5qc2RlbGl2ci5uZXQvbnBtL0BlbWFpbGpzL2Jyb3dzZXJAMy9kaXN0L2VtYWlsLm1pbi5qcycKXTsKCi8vIEluc3RhbGwg4oCUIGNhY2hlIGNvcmUgYXNzZXRzCnNlbGYuYWRkRXZlbnRMaXN0ZW5lcignaW5zdGFsbCcsIGUgPT4gewogIHNlbGYuc2tpcFdhaXRpbmcoKTsKICBlLndhaXRVbnRpbCgKICAgIGNhY2hlcy5vcGVuKENBQ0hFKS50aGVuKGNhY2hlID0+IHsKICAgICAgLy8gQ2FjaGUgd2hhdCB3ZSBjYW4sIGlnbm9yZSBmYWlsdXJlcyBmb3IgZXh0ZXJuYWwgcmVzb3VyY2VzCiAgICAgIHJldHVybiBQcm9taXNlLmFsbFNldHRsZWQoCiAgICAgICAgT0ZGTElORV9BU1NFVFMubWFwKHVybCA9PiBjYWNoZS5hZGQodXJsKS5jYXRjaCgoKSA9PiB7fSkpCiAgICAgICk7CiAgICB9KQogICk7Cn0pOwoKLy8gQWN0aXZhdGUg4oCUIGNsZWFuIG9sZCBjYWNoZXMKc2VsZi5hZGRFdmVudExpc3RlbmVyKCdhY3RpdmF0ZScsIGUgPT4gewogIGUud2FpdFVudGlsKAogICAgY2FjaGVzLmtleXMoKS50aGVuKGtleXMgPT4KICAgICAgUHJvbWlzZS5hbGwoa2V5cy5maWx0ZXIoayA9PiBrICE9PSBDQUNIRSkubWFwKGsgPT4gY2FjaGVzLmRlbGV0ZShrKSkpCiAgICApCiAgKTsKICBzZWxmLmNsaWVudHMuY2xhaW0oKTsKfSk7CgovLyBGZXRjaCDigJQgc2VydmUgZnJvbSBjYWNoZSwgZmFsbCBiYWNrIHRvIG5ldHdvcmsKc2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGUgPT4gewogIC8vIERvbid0IGludGVyY2VwdCBHb29nbGUgQVBJcyAoRHJpdmUsIE9BdXRoKSDigJQgYWx3YXlzIG5lZWQgbmV0d29yawogIGlmIChlLnJlcXVlc3QudXJsLmluY2x1ZGVzKCdnb29nbGVhcGlzLmNvbScpIHx8CiAgICAgIGUucmVxdWVzdC51cmwuaW5jbHVkZXMoJ2FjY291bnRzLmdvb2dsZS5jb20nKSB8fAogICAgICBlLnJlcXVlc3QudXJsLmluY2x1ZGVzKCdlbWFpbGpzLmNvbScpKSB7CiAgICByZXR1cm47CiAgfQoKICBlLnJlc3BvbmRXaXRoKAogICAgY2FjaGVzLm1hdGNoKGUucmVxdWVzdCkudGhlbihjYWNoZWQgPT4gewogICAgICBpZiAoY2FjaGVkKSByZXR1cm4gY2FjaGVkOwogICAgICByZXR1cm4gZmV0Y2goZS5yZXF1ZXN0KS50aGVuKHJlc3BvbnNlID0+IHsKICAgICAgICAvLyBDYWNoZSBzdWNjZXNzZnVsIEdFVCByZXNwb25zZXMKICAgICAgICBpZiAoZS5yZXF1ZXN0Lm1ldGhvZCA9PT0gJ0dFVCcgJiYgcmVzcG9uc2Uuc3RhdHVzID09PSAyMDApIHsKICAgICAgICAgIGNvbnN0IGNsb25lID0gcmVzcG9uc2UuY2xvbmUoKTsKICAgICAgICAgIGNhY2hlcy5vcGVuKENBQ0hFKS50aGVuKGNhY2hlID0+IGNhY2hlLnB1dChlLnJlcXVlc3QsIGNsb25lKSk7CiAgICAgICAgfQogICAgICAgIHJldHVybiByZXNwb25zZTsKICAgICAgfSkuY2F0Y2goKCkgPT4gewogICAgICAgIC8vIE9mZmxpbmUgZmFsbGJhY2sgZm9yIG5hdmlnYXRpb24gcmVxdWVzdHMKICAgICAgICBpZiAoZS5yZXF1ZXN0Lm1vZGUgPT09ICduYXZpZ2F0ZScpIHsKICAgICAgICAgIHJldHVybiBjYWNoZXMubWF0Y2goJy9wYXl0cmFjay9pbmRleC5odG1sJyk7CiAgICAgICAgfQogICAgICB9KTsKICAgIH0pCiAgKTsKfSk7Cg==');
+    const blob = new Blob([swCode], {type:'text/javascript'});
+    const swUrl = URL.createObjectURL(blob);
+    navigator.serviceWorker.register(swUrl, {scope:'./' })
+      .then(r=>console.log('SW registered'))
+      .catch(e=>console.log('SW failed',e));
+  });
+}
+
+// ── PWA INSTALL ──
+let deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  showInstallBanner('android');
+});
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('installBanner').style.display = 'none';
+  deferredInstallPrompt = null;
+  toast('PayTrack installed! 🎉', 'success');
+});
+
+function showInstallBanner(type) {
+  if (localStorage.getItem('pt_install_dismissed')) return;
+  if (window.matchMedia('(display-mode: standalone)').matches) return; // already installed
+  const banner = document.getElementById('installBanner');
+  if (!banner) return;
+  banner.style.display = 'block';
+  if (type === 'ios') {
+    document.getElementById('iosInstallHint').style.display = 'block';
+    document.getElementById('installBtnRow').style.display = 'none';
+  }
+}
+
+document.getElementById('installBtn')?.addEventListener('click', async () => {
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    const result = await deferredInstallPrompt.userChoice;
+    if (result.outcome === 'accepted') {
+      document.getElementById('installBanner').style.display = 'none';
+    }
+    deferredInstallPrompt = null;
+  }
+});
+
+// Detect iOS and show manual instructions
+function isIOS() {
+  return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+}
+function isInStandaloneMode() {
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+}
+
+window.addEventListener('load', () => {
+  if (isIOS() && !isInStandaloneMode()) {
+    setTimeout(() => showInstallBanner('ios'), 3000);
+  }
+});
+
 </script>
 </body>
 </html>
