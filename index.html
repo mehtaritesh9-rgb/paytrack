@@ -16,6 +16,8 @@
 <title>PayTrack — Payment Management</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -347,8 +349,8 @@ tr:hover td{background:#fafbfd}
     </div>
     <div class="tr">
       <div class="user-chip"><span id="topUser">—</span><span class="role-tag" id="topRole">—</span></div>
-      <button class="tbtn" id="driveBtn" onclick="initGDrive(false)"><span class="tbtn-drive-icon">☁</span> <span class="tbtn-drive-txt">Google Drive</span></button>
-      <button class="tbtn" id="syncBtn" onclick="loadDrive()" style="display:none" title="Sync from Drive">🔄 Sync</button>
+      <button class="tbtn" id="syncBtn" onclick="syncNow()" title="Sync now">🔄 Sync</button>
+      <div id="cloudStatus" style="display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:7px;border:1px solid var(--border2);font-size:11px;font-weight:600;color:var(--muted)"><span id="cloudDot" style="width:7px;height:7px;border-radius:50%;background:var(--muted2)"></span><span id="cloudTxt">Connecting...</span></div>
       <button class="tbtn red" onclick="doLogout()">↩ Logout</button>
     </div>
   </div>
@@ -514,39 +516,112 @@ tr:hover td{background:#fafbfd}
 // ── STATE ──
 let CU=null,master=[],merged=[],managers=[],ptp={},emailCfg={},rawLed=null,rawMst=null;
 let dupQ=[],dupCB=null,skipAll=false,replAll=false,ptpTarget=null;
-let accessToken=null,driveFileId=null,remInterval=null;
-const LS={
-  session:'pt_session',   // {name, role, email}
-  driveConnected:'pt_drive_connected', // 'yes'
+let remInterval=null;
+const LS={session:'pt_session'};
+
+// ── FIREBASE CONFIG ──
+// TODO: Replace with your Firebase project config
+const FB_CONFIG = {
+  apiKey: "AIzaSyAdVqdoTMY-2QX-8r0_Yb3GEvMzLp5DtUc",
+  authDomain: "paytrack-50e51.firebaseapp.com",
+  projectId: "paytrack-50e51",
+  storageBucket: "paytrack-50e51.firebasestorage.app",
+  messagingSenderId: "618231519967",
+  appId: "1:618231519967:web:e5de97cea644be41c0676a",
+  measurementId: "G-EHL6RXJRXQ"
 };
-let db;
 
-const K={master:'pt_m',merged:'pt_d',managers:'pt_mg',ptp:'pt_p',email:'pt_e'};
+let fsdb = null;
 
-// ── INDEXEDDB ──
-function openDB(){
-  return new Promise((res,rej)=>{
-    const r=indexedDB.open('PayTrackDB2',1);
-    r.onupgradeneeded=e=>{if(!e.target.result.objectStoreNames.contains('s'))e.target.result.createObjectStore('s');};
-    r.onsuccess=e=>{db=e.target.result;res(db);};
-    r.onerror=()=>rej(r.error);
-  });
+function initFirebase(){
+  try{
+    if(!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
+    fsdb = firebase.firestore();
+    setCloud('online','☁ Cloud','var(--green)');
+    return true;
+  }catch(e){
+    console.error('Firebase init failed',e);
+    setCloud('offline','No Cloud','var(--red)');
+    return false;
+  }
 }
-const dbg=k=>new Promise((res,rej)=>{const r=db.transaction('s','readonly').objectStore('s').get(k);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});
-const dbs=(k,v)=>new Promise((res,rej)=>{const r=db.transaction('s','readwrite').objectStore('s').put(v,k);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});
+
+function setCloud(state, txt, color){
+  const dot=document.getElementById('cloudDot');
+  const label=document.getElementById('cloudTxt');
+  if(dot) dot.style.background=color;
+  if(label) label.textContent=txt;
+}
+
+// ── FIRESTORE READ/WRITE ──
+async function fsGet(docId){
+  if(!fsdb) return null;
+  const snap = await fsdb.collection('paytrack').doc(docId).get();
+  return snap.exists ? snap.data() : null;
+}
+async function fsSet(docId, data){
+  if(!fsdb) return;
+  await fsdb.collection('paytrack').doc(docId).set(data, {merge:true});
+}
 
 async function loadDB(){
-  master  =await dbg(K.master)  ||[];
-  merged  =await dbg(K.merged)  ||[];
-  managers=await dbg(K.managers)||[{name:'Admin',email:'',pin:'0000',role:'admin',color:'#2563eb'}];
-  ptp     =await dbg(K.ptp)     ||{};
-  emailCfg=await dbg(K.email)   ||{};
-  if(emailCfg.publicKey)emailjs.init(emailCfg.publicKey);
+  const ok = initFirebase();
+  if(!ok){ managers=[{name:'Admin',email:'',pin:'0000',role:'admin',color:'#2563eb'}]; return; }
+  try{
+    setCloud('syncing','Syncing...','var(--orange)');
+    const [mst, dat, mgr, pt, ecfg] = await Promise.all([
+      fsGet('master'), fsGet('ledger'), fsGet('managers'), fsGet('ptp'), fsGet('config')
+    ]);
+    master   = mst?.data   || [];
+    merged   = dat?.data   || [];
+    managers = mgr?.data   || [{name:'Admin',email:'',pin:'0000',role:'admin',color:'#2563eb'}];
+    ptp      = pt?.data    || {};
+    emailCfg = ecfg?.data  || {};
+    if(emailCfg.publicKey) emailjs.init(emailCfg.publicKey);
+    setCloud('online','☁ Live','var(--green)');
+  }catch(e){
+    console.error('Firestore load error',e);
+    setCloud('offline','Offline','var(--red)');
+    managers=[{name:'Admin',email:'',pin:'0000',role:'admin',color:'#2563eb'}];
+  }
 }
+
 async function persist(){
-  await dbs(K.master,master);await dbs(K.merged,merged);
-  await dbs(K.managers,managers);await dbs(K.ptp,ptp);
-  if(accessToken)saveDrive();
+  if(!fsdb){ console.warn('No Firestore'); return; }
+  try{
+    setCloud('syncing','Saving...','var(--orange)');
+    await Promise.all([
+      fsSet('ledger',   {data:merged,   updated:new Date().toISOString()}),
+      fsSet('master',   {data:master,   updated:new Date().toISOString()}),
+      fsSet('managers', {data:managers, updated:new Date().toISOString()}),
+      fsSet('ptp',      {data:ptp,      updated:new Date().toISOString()}),
+    ]);
+    setCloud('online','☁ Saved','var(--green)');
+    setTimeout(()=>setCloud('online','☁ Live','var(--green)'),2000);
+  }catch(e){
+    console.error('Firestore save error',e);
+    setCloud('offline','Save failed','var(--red)');
+  }
+}
+
+async function persistPTP(){
+  if(!fsdb) return;
+  await fsSet('ptp', {data:ptp, updated:new Date().toISOString()});
+  setCloud('online','☁ Saved','var(--green)');
+  setTimeout(()=>setCloud('online','☁ Live','var(--green)'),2000);
+}
+
+async function persistConfig(){
+  if(!fsdb) return;
+  await fsSet('config', {data:emailCfg, updated:new Date().toISOString()});
+}
+
+async function syncNow(){
+  toast('Syncing from cloud...','info');
+  await loadDB();
+  if(CU?.role==='admin'){renderDash();renderMgrList();loadEJFields();}
+  else if(CU) renderMgrDash();
+  toast('Sync complete','success');
 }
 
 // ── AUTH ──
@@ -593,9 +668,7 @@ function go(){
 }
 function doLogout(){
   CU=null;
-  accessToken=null;
   localStorage.removeItem(LS.session);
-  localStorage.removeItem(LS.driveConnected);
   document.getElementById('appShell').style.display='none';
   document.getElementById('loginScreen').style.display='flex';
   document.getElementById('adminView').style.display='none';
@@ -699,7 +772,7 @@ async function saveMaster(){
     const idx=master.findIndex(e=>fuzzyName(e.name,p.name));
     if(idx>=0)master[idx]={...master[idx],...p};else master.push(p);
   });
-  await dbs(K.master,master);
+  await fsSet('master',{data:master,updated:new Date().toISOString()});
   // Auto-register managers from master
   rawMst.forEach(p=>{
     if(!p.manager)return;
@@ -707,7 +780,7 @@ async function saveMaster(){
     if(!exists){const em=rawMst.find(r=>r.manager===p.manager&&r.managerEmail);managers.push({name:p.manager,email:em?.managerEmail||'',pin:'',role:'manager',color:randCol()});}
     else if(p.managerEmail&&!exists.email)exists.email=p.managerEmail;
   });
-  await dbs(K.managers,managers);
+  await fsSet('managers',{data:managers,updated:new Date().toISOString()});
   renderMgrList();
   toast(`Master saved: ${master.length} parties stored permanently`,'success');
 }
@@ -739,7 +812,6 @@ async function loadLedger(){
   });
   ptp=keptPTP;
   merged=incoming;
-  await dbs(K.ptp,ptp);
   await persist();
   renderDash();
   toast(`Loaded ${merged.length} parties — dashboard refreshed`,'success');
@@ -886,14 +958,13 @@ async function savePTP(){
   const date=document.getElementById('ptpD').value;
   if(!date){toast('Select a date','warn');return;}
   ptp[ptpTarget]={date,amount:parseFloat(document.getElementById('ptpA').value)||0,notes:document.getElementById('ptpN').value.trim(),setBy:CU.name,setAt:new Date().toISOString()};
-  await dbs(K.ptp,ptp);closePTP();
+  await persistPTP();closePTP();
   toast(`PTP saved`,'success');
   if(CU.role==='admin')renderDash();else renderMgrDash();
-  if(accessToken)saveDrive();
 }
 async function deletePTP(){
   if(!ptpTarget)return;
-  delete ptp[ptpTarget];await dbs(K.ptp,ptp);closePTP();
+  delete ptp[ptpTarget];await persistPTP();closePTP();
   toast('PTP removed','info');
   if(CU.role==='admin')renderDash();else renderMgrDash();
 }
@@ -926,12 +997,12 @@ async function addManager(){
   if(!n){toast('Enter name','warn');return;}
   if(managers.find(m=>m.name.toLowerCase()===n.toLowerCase())){toast('Already exists','warn');return;}
   managers.push({name:n,email:e,pin:p,role:'manager',color:randCol()});
-  await dbs(K.managers,managers);
+  await fsSet('managers',{data:managers,updated:new Date().toISOString()});
   document.getElementById('nMN').value='';document.getElementById('nME').value='';document.getElementById('nMP').value='';
   renderMgrList();toast(`${n} added`,'success');
 }
-async function delMgr(i){if(!confirm(`Remove ${managers[i].name}?`))return;managers.splice(i,1);await dbs(K.managers,managers);renderMgrList();}
-async function editPin(i){const p=prompt(`New PIN for ${managers[i].name}:`);if(!p)return;managers[i].pin=p.trim();await dbs(K.managers,managers);renderMgrList();toast('PIN updated','success');}
+async function delMgr(i){if(!confirm(`Remove ${managers[i].name}?`))return;managers.splice(i,1);await fsSet('managers',{data:managers,updated:new Date().toISOString()});renderMgrList();}
+async function editPin(i){const p=prompt(`New PIN for ${managers[i].name}:`);if(!p)return;managers[i].pin=p.trim();await fsSet('managers',{data:managers,updated:new Date().toISOString()});renderMgrList();toast('PIN updated','success');}
 
 // ── EMAIL ──
 function loadEJFields(){
@@ -942,7 +1013,7 @@ function loadEJFields(){
 }
 async function saveEmailCfg(){
   emailCfg={serviceId:document.getElementById('ejS').value.trim(),templateId:document.getElementById('ejT').value.trim(),publicKey:document.getElementById('ejK').value.trim(),adminEmail:document.getElementById('ejA').value.trim()};
-  await dbs(K.email,emailCfg);emailjs.init(emailCfg.publicKey);toast('Email config saved ✓','success');
+  await persistConfig();emailjs.init(emailCfg.publicKey);toast('Email config saved ✓','success');
 }
 function buildEmail(mgrName,parties){
   const today=td();
@@ -1006,182 +1077,24 @@ async function sendPTPReminders(){
 }
 
 // ── GOOGLE DRIVE ──
-const GCI='997562784248-g7tkuac430mg1ihbub279i6o4d1299f5.apps.googleusercontent.com';
-let gsiLoaded=false, tokenClient=null;
-
-function loadGSI(){
-  return new Promise(res=>{
-    if(gsiLoaded){res();return;}
-    const s=document.createElement('script');
-    s.src='https://accounts.google.com/gsi/client';
-    s.onload=()=>{gsiLoaded=true;res();};
-    document.head.appendChild(s);
-  });
-}
-
-function markDriveUI(){
-  const b=document.getElementById('driveBtn');
-  if(b){b.innerHTML='☁ Drive ✓';b.style.color='var(--green)';}
-  const s=document.getElementById('syncBtn');
-  if(s)s.style.display='flex';
-}
-
-async function initGDrive(silent=false){
-  await loadGSI();
-  tokenClient=google.accounts.oauth2.initTokenClient({
-    client_id:GCI,
-    scope:'https://www.googleapis.com/auth/drive.file',
-    callback:async resp=>{
-      if(resp.access_token){
-        accessToken=resp.access_token;
-        localStorage.setItem(LS.driveConnected,'yes');
-        markDriveUI();
-        if(!silent)toast('Drive connected','success');
-        await loadDrive();
-        // Re-render after drive load
-        if(CU?.role==='admin'){renderDash();renderMgrList();}
-        else if(CU)renderMgrDash();
-      }
-    }
-  });
-  if(silent){
-    // Silent refresh — no popup, uses existing Google session
-    tokenClient.requestAccessToken({prompt:''});
-  } else {
-    tokenClient.requestAccessToken({prompt:'consent'});
-  }
-}
-
-async function autoReconnectDrive(){
-  // If user previously connected Drive, silently reconnect on load
-  if(localStorage.getItem(LS.driveConnected)==='yes'){
-    try{ await initGDrive(true); }
-    catch(e){ console.log('Silent drive reconnect failed',e); }
-  }
-}
-async function saveDrive(){
-  if(!accessToken)return;
-  const body=JSON.stringify({merged,master,managers,ptp,emailCfg});
-  if(driveFileId){await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`,{method:'PATCH',headers:{Authorization:`Bearer ${accessToken}`,'Content-Type':'application/json'},body});}
-  else{const f=new FormData();f.append('metadata',new Blob([JSON.stringify({name:'paytrack_data.json'})],{type:'application/json'}));f.append('file',new Blob([body],{type:'application/json'}));const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{method:'POST',headers:{Authorization:`Bearer ${accessToken}`},body:f});driveFileId=(await r.json()).id;}
-}
-async function loadDrive(){
-  if(!accessToken)return;
-  try{
-    const r=await fetch(`https://www.googleapis.com/drive/v3/files?q=name='paytrack_data.json'&fields=files(id,name)`,{headers:{Authorization:`Bearer ${accessToken}`}});
-    if(!r.ok){console.error('Drive list failed',r.status);return;}
-    const j=await r.json();
-    if(!j.files?.length){toast('No data found on Drive yet','info');return;}
-    driveFileId=j.files[0].id;
-    const fr=await fetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`,{headers:{Authorization:`Bearer ${accessToken}`}});
-    if(!fr.ok){console.error('Drive fetch failed',fr.status);return;}
-    const d=await fr.json();
-    if(d.merged&&d.merged.length){merged=d.merged;await dbs(K.merged,merged);}
-    if(d.master&&d.master.length){master=d.master;await dbs(K.master,master);}
-    if(d.managers&&d.managers.length){managers=d.managers;await dbs(K.managers,managers);}
-    if(d.ptp){ptp=d.ptp;await dbs(K.ptp,ptp);}
-    if(d.emailCfg){emailCfg=d.emailCfg;await dbs(K.email,emailCfg);}
-    toast(`Synced: ${merged.length} parties loaded`,'success');
-    // Re-render whatever view is active
-    if(CU?.role==='admin'){renderDash();renderMgrList();loadEJFields();}
-    else if(CU) renderMgrDash();
-    document.getElementById('syncNudge')?.remove();
-  }catch(e){
-    console.error('Drive load error',e);
-    toast('Drive sync error — check connection','error');
-  }
-}
-
-// ── EXPORT ──
-function doExport(){
-  const data=CU.role==='admin'?merged:myParties();
-  const h=['Party','City','Phone','Manager','Pend Debit','Pend Credit','<90D Dr','>90D Dr','On Acc Dr','On Acc Cr','PTP Date','PTP Amt','PTP Notes'];
-  const rows=data.map(r=>{const p=ptp[r.name]||{};return[r.name,r.city||'',r.phone||'',r.manager||'',r.pendingDebit,r.pendingCredit,r.sub90Debit,r.over90Debit,r.onAccDebit,r.onAccCredit,p.date||'',p.amount||'',p.notes||''];});
-  const csv=[h,...rows].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=`paytrack_${td()}.csv`;a.click();
-  toast('CSV exported','success');
-}
-
-// ── UTILS ──
-function fmtPhone(p){
-  if(!p)return'—';
-  const d=String(p).replace(/\D/g,'');
-  const n=d.length===12&&d.startsWith('91')?d.slice(2):d;
-  if(n.length===10)return`+91 ${n.slice(0,5)} ${n.slice(5)}`;
-  return p;
-}
-function cleanName(n){return n.replace(/\*+$/,'').replace(/\s+/g,' ').trim();}
-function norm(s){return s.toUpperCase().replace(/\*+/g,'').replace(/\bAMD\b/g,'AHMEDABAD').replace(/[-–—]/g,' ').replace(/\s+/g,' ').trim();}
-function fuzzyName(a,b){const na=norm(a),nb=norm(b);if(na===nb)return true;const bA=na.split(' ')[0],bB=nb.split(' ')[0];if(bA.length>3&&bA===bB){const cA=na.replace(bA,'').trim(),cB=nb.replace(bB,'').trim();if(!cA||!cB)return true;return cA.slice(0,4)===cB.slice(0,4);}return false;}
-function fuzzyMatch(name,list){return(list||[]).find(r=>fuzzyName(r.name,name))||null;}
-function exCity(name){const p=name.split('-');return p.length>1?norm(p[p.length-1]).trim():'';}
-function fmt(n){return Number(n).toLocaleString('en-IN',{maximumFractionDigits:2});}
-function fmtL(n){if(n>=10000000)return(n/10000000).toFixed(1)+'Cr';if(n>=100000)return(n/100000).toFixed(1)+'L';if(n>=1000)return(n/1000).toFixed(1)+'K';return String(Math.round(n));}
-function td(){const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
-function randCol(){return['#2563eb','#7c3aed','#db2777','#ea580c','#16a34a','#0891b2','#9333ea','#b45309'][Math.floor(Math.random()*8)];}
-function toast(msg,type='info'){const c=document.getElementById('TC');const t=document.createElement('div');t.className=`tst ${type}`;t.innerHTML=`<span>${type==='success'?'✓':type==='error'?'✗':type==='warn'?'⚠':'ℹ'}</span> ${msg}`;c.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .4s';setTimeout(()=>t.remove(),400);},3500);}
-
-
-// ── MOBILE NAV ──
-function setMobActive(btn){
-  document.querySelectorAll('.mob-nav-btn').forEach(b=>{b.style.color='var(--muted)';});
-  btn.style.color='var(--accent)';
-}
-function checkMobile(){
-  const isMob=window.innerWidth<=768;
-  const nav=document.getElementById('mobileNav');
-  if(nav&&CU?.role==='admin') nav.style.display=isMob?'block':'none';
-  // On mobile: collapse the tab button bar (height=0) so bottom nav takes over
-  // But keep tab-content divs fully visible — do NOT hide them
-  const topTabs=document.querySelector('.tabs');
-  if(topTabs&&CU?.role==='admin'){
-    if(isMob){
-      topTabs.style.height='0'; topTabs.style.overflow='hidden';
-      topTabs.style.margin='0'; topTabs.style.padding='0'; topTabs.style.border='none';
-    } else {
-      topTabs.style.height=''; topTabs.style.overflow='';
-      topTabs.style.margin=''; topTabs.style.padding='4px'; topTabs.style.border='';
-    }
-  }
-}
-window.addEventListener('resize',checkMobile);
-
-
 function showSyncNudge(){
-  const existing = document.getElementById('syncNudge');
-  if(existing) return;
-  const el = document.createElement('div');
-  el.id = 'syncNudge';
-  el.style.cssText = 'position:fixed;bottom:70px;left:12px;right:12px;background:var(--accent);color:#fff;border-radius:12px;padding:14px 16px;z-index:300;box-shadow:0 8px 24px rgba(37,99,235,.4);animation:slideIn .3s ease';
-  el.innerHTML = `
-    <div style="font-weight:800;font-size:14px;margin-bottom:4px">☁ Connect Google Drive</div>
-    <div style="font-size:12px;opacity:.9;margin-bottom:12px">Tap to sync your data across all devices</div>
-    <div style="display:flex;gap:8px">
-      <button onclick="initGDrive(false);document.getElementById('syncNudge')?.remove()" style="flex:1;padding:9px;background:#fff;color:var(--accent);border:none;border-radius:8px;font-family:var(--font);font-weight:800;font-size:13px;cursor:pointer">Connect Drive</button>
-      <button onclick="document.getElementById('syncNudge')?.remove()" style="padding:9px 14px;background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:8px;font-family:var(--font);font-weight:700;font-size:12px;cursor:pointer">Later</button>
-    </div>`;
-  document.body.appendChild(el);
+  // Data auto-loads from cloud — no manual action needed
+  // This nudge is no longer required with Firestore
 }
 
 // ── INIT ──
-openDB().then(loadDB).then(async()=>{
-  // Restore session from localStorage (survives refresh)
+// ── INIT ── Load from Firestore then restore session
+loadDB().then(()=>{
   const saved=localStorage.getItem(LS.session);
   if(saved){
     try{
       const s=JSON.parse(saved);
-      // Validate user still exists in managers
-      if(s.role==='admin'||(managers.find(m=>m.name===s.name&&m.role!=='admin'))){
-        CU=s;
-        go();
-        // Auto-reconnect Drive silently in background
-        await autoReconnectDrive();
-      }else{
-        localStorage.removeItem(LS.session);
-      }
-    }catch(e){localStorage.removeItem(LS.session);}
+      const valid=s.role==='admin'||managers.find(m=>m.name===s.name&&m.role!=='admin');
+      if(valid){ CU=s; go(); }
+      else localStorage.removeItem(LS.session);
+    }catch(e){ localStorage.removeItem(LS.session); }
   }
-}).catch(e=>console.error('DB error:',e));
+}).catch(e=>console.error('Init error:',e));
 </script>
 
 <!-- PWA Install Banner -->
